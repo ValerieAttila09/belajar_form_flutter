@@ -9,7 +9,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
       home: TextfieldToTable(),
     );
@@ -25,21 +25,32 @@ class TextfieldToTable extends StatefulWidget {
 
 class TextfieldPageState extends State<TextfieldToTable> {
   final TextEditingController namaController = TextEditingController();
-  final TextEditingController kelasController = TextEditingController();
+  final TextEditingController hargaController = TextEditingController();
+  final TextEditingController jumlahController = TextEditingController();
 
-  // Array list
-
-  List<Map<String, String>> DataList = [];
+  // List untuk menyimpan data tabel
+  final List<Map<String, String>> dataList = [];
 
   void tambahData() {
-    setState(() {
-      DataList.add({
-        'nama': namaController.text,
-        'kelas': kelasController.text,
+    final String nama = namaController.text;
+    final String hargaString = hargaController.text;
+    final String jumlahString = jumlahController.text;
+
+    final int? harga = int.tryParse(hargaString);
+    final int? jumlah = int.tryParse(jumlahString);
+
+    final int totalBayar = harga! * jumlah!;
+
+    return setState(() {
+      dataList.add({
+        'nama': nama,
+        'harga': harga.toString(),
+        'jumlah': jumlah.toString(),
+        'total': totalBayar.toString(),
       });
-      // untuk membersihkan isi form atau textfield
       namaController.clear();
-      kelasController.clear();
+      hargaController.clear();
+      jumlahController.clear();
     });
   }
 
@@ -47,77 +58,92 @@ class TextfieldPageState extends State<TextfieldToTable> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Form Data"),
+        title: const Text("Form Data"),
         backgroundColor: Colors.blueGrey,
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsetsGeometry.all(10),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                TextFormField(
-                  controller: namaController,
-                  decoration: InputDecoration(
-                    labelText: "Nama Siswa",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                TextFormField(
-                  controller: kelasController,
-                  decoration: InputDecoration(
-                    labelText: "Kelas Siswa",
-                    border: OutlineInputBorder(),
-                  ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: tambahData,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 33, 135, 175),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    padding: EdgeInsets.symmetric(vertical: 14, horizontal: 40),
-                  ),
-                  child: Text(
-                    "Tambah",
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      color: const Color.fromARGB(255, 255, 255, 255),
+      body: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.all(10.0),
+          child: Column(
+            children: [
+              Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: namaController,
+                    decoration: const InputDecoration(
+                      labelText: "Nama Barang",
+                      border: OutlineInputBorder(),
                     ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: Row(
-                    children: <Widget>[
-                      DataTable(
-                        columns: const <DataColumn>[
-                          DataColumn(label: Text("No")),
-                          DataColumn(label: Text("Nama Siswa")),
-                          DataColumn(label: Text("Kelas")),
-                        ],
-                        rows: List.generate(
-                          DataList.length,
-                          (index) => DataRow(cells: [
-                            DataCell(Text((index + 1).toString())),
-                            DataCell(Text(DataList[index]['nama']!)),
-                            DataCell(Text(DataList[index]['kelas']!))
-                          ]),
-                        ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: hargaController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Harga Barang",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: jumlahController,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(
+                      labelText: "Jumlah Barang",
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: tambahData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 33, 135, 175),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(4),
                       ),
-                    ],
+                      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 40),
+                    ),
+                    child: const Text(
+                      "Tambah",
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w400,
+                        color: Color.fromARGB(255, 255, 255, 255),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              // Bagian tabel data
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: DataTable(
+                  columns: const <DataColumn>[
+                    DataColumn(label: Text("No")),
+                    DataColumn(label: Text("Nama Barang")),
+                    DataColumn(label: Text("Harga Barang")),
+                    DataColumn(label: Text("Jumlah Barang")),
+                    DataColumn(label: Text("Total Bayar")),
+                  ],
+                  rows: List.generate(
+                    dataList.length,
+                    (index) => DataRow(
+                      cells: [
+                        DataCell(Text((index + 1).toString())),
+                        DataCell(Text(dataList[index]['nama']!)),
+                        DataCell(Text(dataList[index]['harga']!)), // Typo diperbaiki
+                        DataCell(Text(dataList[index]['jumlah']!)),
+                        DataCell(Text(dataList[index]['total']!)),
+                      ],
+                    ),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
